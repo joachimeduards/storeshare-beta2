@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Logga in – StoreShare</title>
+  <link rel="stylesheet" href="./style.css"/>
+</head>
+<body>
+
+<header class="fixed-header" role="banner">
+  <div class="fixed-header-inner">
+    <img class="fixed-logo" src="./assets/storeshare-logo-132.png"
+         srcset="./assets/storeshare-logo-132.png 1x, ./assets/storeshare-logo-264.png 2x, ./assets/storeshare-logo-396.png 3x"
+         width="56" height="56" alt="StoreShare">
+    <span class="fixed-brand">StoreShare</span>
+    <nav class="auth-links"></nav>
+  </div>
+</header>
+
+<main class="container" style="max-width:720px; padding: 0 16px 120px">
+  <h1 class="page-title">Logga in</h1>
+  <section class="card" id="login"><div class="card-inner">
+    <div class="field"><label>E‑post</label><input type="email" id="loginEmail" placeholder="namn@exempel.se"/></div>
+    <div class="field"><label>Lösenord</label><input type="password" id="loginPass" placeholder="••••••••"/></div>
+    <div class="row" style="gap:10px">
+      <button class="btn" id="doLogin">Logga in</button>
+      <a class="btn ghost" href="./signup.html">Skapa konto</a>
+    </div>
+    <div id="loginMsg" class="help" style="margin-top:10px"></div>
+  </div></section>
+</main>
+
+<script>
+function getUsers(){ try{ return JSON.parse(localStorage.getItem('storeshare:users')||'[]') }catch(e){ return [] } }
+function saveUsers(arr){ localStorage.setItem('storeshare:users', JSON.stringify(arr)) }
+function setSession(sess){ if(sess){ localStorage.setItem('storeshare:session', JSON.stringify(sess)) } else { localStorage.removeItem('storeshare:session') } }
+function getSession(){ try{ return JSON.parse(localStorage.getItem('storeshare:session')||'null') }catch(e){ return null } }
+function hash(p){ try{ return btoa(unescape(encodeURIComponent(p))) }catch(e){ return btoa(p) } }
+function updateAuthUI(){
+  const nav = document.querySelector('.auth-links'); if(!nav) return;
+  const sess = getSession();
+  if(sess){
+    nav.innerHTML = `<span class="user-chip" title="${sess.email}">Inloggad som ${sess.name||sess.email}</span>
+                     <button class="btn ghost" id="logoutBtn">Logga ut</button>`;
+    const btn = nav.querySelector('#logoutBtn');
+    if(btn){ btn.addEventListener('click', ()=>{ setSession(null); location.href='./index.html' }) }
+  }else{
+    nav.innerHTML = `<a class="btn ghost" href="./login.html">Logga in</a>
+                     <a class="btn" href="./signup.html">Skapa konto</a>`;
+  }
+}
+document.addEventListener('DOMContentLoaded', updateAuthUI);
+</script>
+
+<script>
+document.getElementById('doLogin').onclick = ()=>{
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase()
+  const pass  = document.getElementById('loginPass').value
+  const msg = document.getElementById('loginMsg')
+  msg.textContent=''
+  const users = getUsers()
+  const user = users.find(u=>u.email===email && u.pass===hash(pass))
+  if(!user){ msg.textContent='Fel e‑post eller lösenord.'; return }
+  setSession({email, name:user.first+' '+user.last})
+  msg.textContent='Inloggad!'
+  setTimeout(()=>{ const ret=(new URLSearchParams(location.search)).get('return')||'./index.html'; location.href=ret }, 400)
+}
+document.getElementById('loginEmail').focus()
+</script>
+
+<nav class="bottom-nav">
+  <a href="index.html"><span aria-hidden="true" style="font-size:1.15rem">🧭</span><span>Start</span></a>
+  <a href="search.html"><span aria-hidden="true" style="font-size:1.15rem">🔎</span><span>Sök</span></a>
+  <a href="create.html"><span aria-hidden="true" style="font-size:1.15rem">🏠</span><span>Hyr ut</span></a>
+  <a href="profile.html"><span aria-hidden="true" style="font-size:1.15rem">👤</span><span>Profil</span></a>
+</nav>
+
+
+<script>
+// Dynamic spacer to avoid bottom-nav covering content
+(function(){
+  const nav = document.querySelector('.bottom-nav');
+  if(!nav) return;
+  let spacer = document.getElementById('navSpacer');
+  if(!spacer){
+    spacer = document.createElement('div');
+    spacer.id = 'navSpacer';
+    spacer.style.width = '100%';
+    spacer.style.height = '0px';
+    spacer.style.pointerEvents = 'none';
+    document.body.appendChild(spacer);
+  }
+  function setSpacer(){
+    const h = Math.ceil(nav.getBoundingClientRect().height || 0);
+    const extra = 24; // breathing room
+    spacer.style.height = (h + extra) + 'px';
+    document.body.style.paddingBottom = (h + extra) + 'px';
+  }
+  const ro = new ResizeObserver(setSpacer);
+  ro.observe(nav);
+  window.addEventListener('orientationchange', setSpacer);
+  window.addEventListener('resize', setSpacer);
+  window.addEventListener('load', setSpacer);
+  setSpacer();
+})();
+</script>
+
+</body>
+</html>

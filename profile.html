@@ -7,6 +7,50 @@
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+
+<script>
+(function(){
+  try{
+    var sess = JSON.parse(localStorage.getItem('storeshare:session')||'null');
+    if(!sess){ location.replace('./login.html?return=' + encodeURIComponent('profile.html')); return; }
+    var users = JSON.parse(localStorage.getItem('storeshare:users')||'[]');
+    var user = users.find(function(u){ return u.email === sess.email }) || null;
+    var name = (user ? (user.first + ' ' + user.last) : (sess.name || sess.email));
+    var email = (user ? user.email : (sess.email || '—'));
+    var nameEl = document.getElementById('profile-name'); if(nameEl) nameEl.textContent = name;
+    var emailEl = document.getElementById('profile-email'); if(emailEl) emailEl.textContent = email;
+
+    // Profile photo load/save
+    try{
+      var photoKey = 'storeshare:profilePhoto:' + email;
+      var saved = localStorage.getItem(photoKey);
+      var imgEl = document.getElementById('profile-photo');
+      if(saved && imgEl){ imgEl.src = saved; }
+      var btn = document.getElementById('changePhotoBtn');
+      var inp = document.getElementById('photoInput');
+      if(btn && inp && imgEl){
+        btn.removeAttribute('disabled');
+        btn.addEventListener('click', function(){ inp.click(); });
+        inp.addEventListener('change', function(ev){
+          var file = ev.target.files && ev.target.files[0];
+          if(!file) return;
+          var reader = new FileReader();
+          reader.onload = function(e){
+            var data = e.target.result;
+            try{ localStorage.setItem(photoKey, data); }catch(err){}
+            imgEl.src = data;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+    }catch(err){}
+
+  }catch(e){
+    location.replace('./login.html?return=' + encodeURIComponent('profile.html'));
+  }
+})();
+</script>
+
 <header class="fixed-header" role="banner">
   <div class="fixed-header-inner">
     <img class="fixed-logo" 
@@ -14,13 +58,14 @@
          srcset="./assets/storeshare-logo-132.png 1x, ./assets/storeshare-logo-264.png 2x, ./assets/storeshare-logo-396.png 3x"
          width="56" height="56" alt="StoreShare">
     <span class="fixed-brand">StoreShare</span>
+    <nav class="auth-links"></nav>
   </div>
 </header>
 
 <main class="container" style="max-width: 1100px; margin: 24px auto 120px; padding: 0 16px;">
   <h1 class="page-title">Din profil</h1>
 
-  <section class="card grid-2" style="display:grid; grid-template-columns:1fr 280px; gap:24px; align-items:start;">
+  <section class="card grid-2 profile-hero" style="display:grid; grid-template-columns:1fr 280px; gap:24px; align-items:start;">
     <div class="card-inner">
       <div class="alert success" style="display:flex; align-items:center; gap:10px; padding:12px 14px; border-radius:10px; background:#e8f7ec;">
         <span style="font-size:18px">✅</span>
@@ -37,40 +82,23 @@
         </div>
       </div>
     </div>
-    <aside class="card-inner" style="text-align:center">
-      <img src="./assets/user-demo.jpg" alt="Profilbild" style="width:180px; height:180px; object-fit:cover; border-radius:14px; box-shadow:0 8px 24px rgba(0,0,0,.12)">
+    <aside class="card-inner" style="text-align:center; padding:16px">
+      <img id="profile-photo" src="./assets/user-demo.jpg" alt="Profilbild" style="width:180px; height:180px; object-fit:cover; border-radius:14px; box-shadow:0 8px 24px rgba(0,0,0,.12)">
       <div style="margin-top:10px;">
-        <button class="btn-light" disabled>Byt bild</button>
+        <input type="file" id="photoInput" accept="image/*" style="display:none">
+        <button class="btn-light" id="changePhotoBtn">Byt bild</button>
       </div>
     </aside>
   </section>
 
   <section class="card" style="margin-top:20px;">
     <div class="card-inner"><h2 class="section-title">Du hyr</h2>
-    <div class="listing-grid" style="display:grid; grid-template-columns:1fr; gap:14px;">
-      <article class="listing card-inner" style="display:flex; gap:14px; align-items:center;">
-        <img src="./assets/garage-thumb.jpg" alt="Förrådsbild" onerror="this.style.display='none';" style="width:120px; height:80px; object-fit:cover; border-radius:10px;">
-        <div style="flex:1">
-          <div style="font-weight:700">Uppvärmt förråd med avfuktare</div>
-          <div style="opacity:.8">Göteborg • 6 m²</div>
-        </div>
-        <a class="btn" href="./listing.html">Visa</a>
-      </article>
-    </div>
+    <div id="youRentList" class="listing-grid profile-list" style="display:grid; grid-template-columns:1fr; gap:14px;"></div>
   </section>
 
   <section class="card" style="margin-top:20px;">
     <div class="card-inner"><h2 class="section-title">Du hyr ut</h2>
-    <div class="listing-grid" style="display:grid; grid-template-columns:1fr; gap:14px;">
-      <article class="listing card-inner" style="display:flex; gap:14px; align-items:center;">
-        <img src="./assets/cellar-thumb.jpg" alt="Förrådsbild" onerror="this.style.display='none';" style="width:120px; height:80px; object-fit:cover; border-radius:10px;">
-        <div style="flex:1">
-          <div style="font-weight:700">Källarförråd i villa</div>
-          <div style="opacity:.8">Stockholm • 4 m²</div>
-        </div>
-        <a class="btn" href="./listing.html">Visa</a>
-      </article>
-    </div>
+    <div id="youLetList" class="listing-grid profile-list" style="display:grid; grid-template-columns:1fr; gap:14px;"></div>
   </section>
 
 </main>
@@ -84,5 +112,109 @@
 </nav>
 
 <script src="./app.js"></script>
+
+<script>
+function getSession(){ try{ return JSON.parse(localStorage.getItem('storeshare:session')||'null') }catch(e){ return null } }
+function setSession(sess){ if(sess){ localStorage.setItem('storeshare:session', JSON.stringify(sess)) } else { localStorage.removeItem('storeshare:session') } }
+function updateAuthUI(){
+  const nav = document.querySelector('.auth-links'); if(!nav) return;
+  const sess = getSession();
+  if(sess){
+    nav.innerHTML = `<span class="user-chip" title="${sess.email}">Inloggad som ${sess.name||sess.email}</span>
+                     <button class="btn ghost" id="logoutBtn">Logga ut</button>`;
+    const btn = nav.querySelector('#logoutBtn');
+    if(btn){ btn.addEventListener('click', ()=>{ setSession(null); location.href='./index.html' }) }
+  }else{
+    nav.innerHTML = `<a class="btn ghost" href="./login.html">Logga in</a>
+                     <a class="btn" href="./signup.html">Skapa konto</a>`;
+  }
+}
+document.addEventListener('DOMContentLoaded', updateAuthUI);
+// Intercept Hyr ut & Profil if not logged in
+document.addEventListener('click', (e)=>{
+  const link = e.target.closest('a[href$="create.html"], a[href$="profile.html"]');
+  if(!link) return;
+  const sess = getSession();
+  if(!sess){
+    e.preventDefault();
+    const url = new URL(link.getAttribute('href'), location.href);
+    const ret = encodeURIComponent(url.pathname.split('/').pop());
+    location.href = `./login.html?return=${ret}`;
+  }
+});
+</script>
+
+
+<script>
+(function(){
+  // Ensure session
+  var sess = null;
+  try{ sess = JSON.parse(localStorage.getItem('storeshare:session')||'null'); }catch(e){}
+  if(!sess){ location.replace('./login.html?return=' + encodeURIComponent('profile.html')); return; }
+
+  // Load data helpers
+  function seedListings(){ return [
+    {id:'1',title:'Uppvärmt förråd med avfuktare',description:'Välisolerat och torrt. Passar för prylar som inte får mögla.','photos':['./assets/garage1.avif'],sizeSqm:6,pricePerMonth:600,heated:true,dehumidifier:true,location:{address:'Rosenlundsgatan • Göteborg',lat:57.7089,lng:11.9746}},
+    {id:'2',title:'Källarförråd i villa',description:'Svalt året runt. Egen nyckel.','photos':['./assets/garage2.webp'],sizeSqm:4,pricePerMonth:350,heated:false,dehumidifier:false,location:{address:'Sveavägen • Stockholm',lat:59.3293,lng:18.0686}}
+  ]}
+  function loadUserListings(){ try{ return JSON.parse(localStorage.getItem('storeshare:demo:listings')||'[]') }catch(e){ return [] } }
+  function loadAll(){ return seedListings().concat(loadUserListings()) }
+  function loadRentIds(email){ try{ return JSON.parse(localStorage.getItem('storeshare:rents:'+email)||'[]') }catch(e){ return [] } }
+
+  const all = loadAll();
+  const letList = loadUserListings().filter(l => !l.ownerEmail || l.ownerEmail === sess.email); // backwards compat
+  const rentIds = loadRentIds(sess.email);
+  const rentList = rentIds.map(id => all.find(x => String(x.id)===String(id))).filter(Boolean);
+
+  function card(l){
+    const img = (l.photos && l.photos[0]) || './assets/garage1.avif';
+    return `<article class="listing card-inner" style="display:flex; gap:14px; align-items:center;">
+      <img src="${img}" alt="Förrådsbild" class="listing-thumb">
+      <div class="text-wrap" style="flex:1; min-width:0">
+        <div class="title" style="font-weight:700;">${l.title}</div>
+        <div class="meta" style="opacity:.8;">${l.location?.address||''} • ${l.sizeSqm} m²</div>
+      </div>
+      <a class="btn" href="./listing.html?id=${encodeURIComponent(l.id)}">Visa</a>
+    </article>`
+  }
+
+  const rentEl = document.getElementById('youRentList');
+  const letEl  = document.getElementById('youLetList');
+
+  rentEl.innerHTML = rentList.length ? rentList.map(card).join('') : '<div class="help">Du hyr inga förråd ännu.</div>';
+  letEl.innerHTML  = letList.length ? letList.map(card).join('')  : '<div class="help">Du har inte lagt upp några förråd ännu.</div>';
+})();
+</script>
+
+
+<script>
+// Dynamic spacer to avoid bottom-nav covering content
+(function(){
+  const nav = document.querySelector('.bottom-nav');
+  if(!nav) return;
+  let spacer = document.getElementById('navSpacer');
+  if(!spacer){
+    spacer = document.createElement('div');
+    spacer.id = 'navSpacer';
+    spacer.style.width = '100%';
+    spacer.style.height = '0px';
+    spacer.style.pointerEvents = 'none';
+    document.body.appendChild(spacer);
+  }
+  function setSpacer(){
+    const h = Math.ceil(nav.getBoundingClientRect().height || 0);
+    const extra = 24; // breathing room
+    spacer.style.height = (h + extra) + 'px';
+    document.body.style.paddingBottom = (h + extra) + 'px';
+  }
+  const ro = new ResizeObserver(setSpacer);
+  ro.observe(nav);
+  window.addEventListener('orientationchange', setSpacer);
+  window.addEventListener('resize', setSpacer);
+  window.addEventListener('load', setSpacer);
+  setSpacer();
+})();
+</script>
+
 </body>
 </html>

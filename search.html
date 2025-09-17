@@ -18,37 +18,52 @@
          srcset="./assets/storeshare-logo-132.png 1x, ./assets/storeshare-logo-264.png 2x, ./assets/storeshare-logo-396.png 3x"
          width="56" height="56" alt="StoreShare">
     <span class="fixed-brand">StoreShare</span>
+    <nav class="auth-links"></nav>
   </div>
 </header>
     <div class="container" style="max-width:1200px">
-      <div style="display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start">
-        <div class="glass" style="padding:16px; position:sticky; top:16px">
-          <h3 style="margin-top:0">Filtrera</h3>
-          <div class="field">
-            <label>Plats</label>
-            <div class="search-bar"><input id="q" placeholder="Adress eller ort i Sverige…"/></div>
-            <div id="ac" class="ac-wrap"></div>
-            <div class="row" style="margin-top:8px">
-              <button id="pick" class="chip">Välj på karta…</button>
-              <span id="centerChip" class="chip" style="display:none">Satt</span>
-            </div>
-          </div>
-          <div class="field"><label>Radie (km)</label><input type="number" id="radius" min="0" value="0"/></div>
-          <div class="field"><label><input type="checkbox" id="heated"/> Uppvärmt</label><label><input type="checkbox" id="dehum"/> Avfuktare</label></div>
-          <div class="field"><label>Min yta (m²)</label><input type="number" id="minSize" value="0"/></div>
-          <div class="field"><label>Max pris (kr/mån)</label><input type="number" id="maxPrice" placeholder="t.ex. 800"/></div>
-          <div class="row"><button id="clear" class="btn ghost">Rensa filter</button></div>
-        </div>
-        <div>
-          <div class="row" style="justify-content:space-between; margin-bottom:12px">
-            <h2 style="margin:0">Sökresultat</h2>
-            <div style="color:#666"><span id="count">0</span> träffar</div>
-          </div>
-          <div class="two-col">
-            <div style="max-height:75vh; overflow:auto; padding-right:4px"><div id="cards" class="cards"></div></div>
-            <div id="map" style="height:75vh; border-radius:16px; overflow:hidden; border:1px solid #00000015; box-shadow:0 12px 24px rgba(0,0,0,.06)"></div>
-          </div>
-        </div>
+  <!-- Filters (Sök) -->
+  <section class="glass" style="padding:16px; margin: 0 0 12px 0" id="filtersSection">
+    <h3 style="margin-top:0">Filtrera</h3>
+    <div class="field">
+      <label>Plats</label>
+      <div class="search-bar"><input id="q" placeholder="Adress eller ort i Sverige…"/></div>
+      <div id="ac" class="ac-wrap"></div>
+    </div>
+    <div class="row" style="margin-top:8px; gap:8px">
+      <button id="pick" class="chip">Välj på karta…</button>
+      <span id="centerChip" class="chip" style="display:none">Satt</span>
+    </div>
+    <div class="field"><label>Radie (km)</label><input type="number" id="radius" placeholder="0"/></div>
+    <div class="field"><label><input type="checkbox" id="heated"/> Uppvärmt</label></div>
+    <div class="field"><label><input type="checkbox" id="dehum"/> Avfuktare</label></div>
+    <div class="two-col" style="grid-template-columns:1fr 1fr; gap:10px;">
+      <div class="field"><label>Min yta (m²)</label><input type="number" id="minSize" placeholder="0"/></div>
+      <div class="field"><label>Max pris (kr/mån)</label><input type="number" id="maxPrice" placeholder="t.ex. 800"/></div>
+    </div>
+    <div class="row" style="margin-top:8px"><button id="clear" class="btn ghost">Rensa filter</button></div>
+    <div class="quick-jump">
+      <a href="#mapSection" class="chip">Hoppa till karta</a>
+      <a href="#resultsSection" class="chip">Hoppa till resultat</a>
+    </div>
+  </section>
+
+  <!-- Map section -->
+  <section style="margin: 0 0 12px 0" id="mapSection">
+    <h3 style="margin:0 0 8px 0">Karta</h3>
+    <div id="map" class="map-vertical"></div>
+  </section>
+
+  <!-- Results section -->
+  <section id="resultsSection">
+    <div class="row" style="justify-content:space-between; margin-bottom:12px">
+      <h2 style="margin:0">Sökresultat</h2>
+      <div style="color:#666"><span id="count">0</span> träffar</div>
+    </div>
+    <div id="cards" class="cards"></div>
+  </section>
+
+
       </div>
     </div>
     <script>
@@ -174,6 +189,68 @@
   <a href="create.html" ><span aria-hidden="true" style="font-size:1.15rem">🏠</span><span>Hyr ut</span></a>
   <a href="profile.html" ><span aria-hidden="true" style="font-size:1.15rem">👤</span><span>Profil</span></a>
 </nav>
+
+
+<script>
+function getSession(){ try{ return JSON.parse(localStorage.getItem('storeshare:session')||'null') }catch(e){ return null } }
+function setSession(sess){ if(sess){ localStorage.setItem('storeshare:session', JSON.stringify(sess)) } else { localStorage.removeItem('storeshare:session') } }
+function updateAuthUI(){
+  const nav = document.querySelector('.auth-links'); if(!nav) return;
+  const sess = getSession();
+  if(sess){
+    nav.innerHTML = `<span class="user-chip" title="${sess.email}">Inloggad som ${sess.name||sess.email}</span>
+                     <button class="btn ghost" id="logoutBtn">Logga ut</button>`;
+    const btn = nav.querySelector('#logoutBtn');
+    if(btn){ btn.addEventListener('click', ()=>{ setSession(null); location.href='./index.html' }) }
+  }else{
+    nav.innerHTML = `<a class="btn ghost" href="./login.html">Logga in</a>
+                     <a class="btn" href="./signup.html">Skapa konto</a>`;
+  }
+}
+document.addEventListener('DOMContentLoaded', updateAuthUI);
+// Intercept Hyr ut & Profil if not logged in
+document.addEventListener('click', (e)=>{
+  const link = e.target.closest('a[href$="create.html"], a[href$="profile.html"]');
+  if(!link) return;
+  const sess = getSession();
+  if(!sess){
+    e.preventDefault();
+    const url = new URL(link.getAttribute('href'), location.href);
+    const ret = encodeURIComponent(url.pathname.split('/').pop());
+    location.href = `./login.html?return=${ret}`;
+  }
+});
+</script>
+
+
+<script>
+// Dynamic spacer to avoid bottom-nav covering content
+(function(){
+  const nav = document.querySelector('.bottom-nav');
+  if(!nav) return;
+  let spacer = document.getElementById('navSpacer');
+  if(!spacer){
+    spacer = document.createElement('div');
+    spacer.id = 'navSpacer';
+    spacer.style.width = '100%';
+    spacer.style.height = '0px';
+    spacer.style.pointerEvents = 'none';
+    document.body.appendChild(spacer);
+  }
+  function setSpacer(){
+    const h = Math.ceil(nav.getBoundingClientRect().height || 0);
+    const extra = 24; // breathing room
+    spacer.style.height = (h + extra) + 'px';
+    document.body.style.paddingBottom = (h + extra) + 'px';
+  }
+  const ro = new ResizeObserver(setSpacer);
+  ro.observe(nav);
+  window.addEventListener('orientationchange', setSpacer);
+  window.addEventListener('resize', setSpacer);
+  window.addEventListener('load', setSpacer);
+  setSpacer();
+})();
+</script>
 
 </body>
 </html>
