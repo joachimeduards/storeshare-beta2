@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Din profil – StoreShare</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="fixed-header" role="banner">
+  <div class="fixed-header-inner">
+    <img class="fixed-logo" 
+         src="./assets/storeshare-logo-132.png" 
+         srcset="./assets/storeshare-logo-132.png 1x, ./assets/storeshare-logo-264.png 2x, ./assets/storeshare-logo-396.png 3x"
+         width="56" height="56" alt="StoreShare">
+    <span class="fixed-brand">StoreShare</span>
+  </div>
+</header>
+
+<main class="container" style="max-width: 1100px; margin: 24px auto 120px; padding: 0 16px;">
+  <h1 class="page-title">Din profil</h1>
+
+  <section class="card grid-2" style="display:grid; grid-template-columns:1fr 280px; gap:24px; align-items:start;">
+    <div class="card-inner">
+      <div class="alert success" style="display:flex; align-items:center; gap:10px; padding:12px 14px; border-radius:10px; background:#e8f7ec;">
+        <span style="font-size:18px">✅</span>
+        <div>Bra jobbat, din profil ser strålande ut!</div>
+      </div>
+      <div style="margin-top:16px; line-height:1.9">
+        <div><strong>Namn</strong><br>Du (demo)</div>
+        <div><strong>Plats</strong><br>Göteborg</div>
+        <div><strong>Om mig</strong><br>Hyresvärd & hyrestagare – gillar ordning och säker förvaring.</div>
+        <div><strong>Intressen</strong><br>Cykling, renovering, second hand</div>
+        <div><strong>Dina stjärnor</strong><br>
+          <span aria-label="4 av 5 stjärnor" title="4 av 5 stjärnor" style="font-size:20px; color:#F59E0B;">★★★★☆</span>
+          <span style="opacity:.75; font-size:14px">4,0 / 5 (1 omdömen)</span>
+        </div>
+      </div>
+    </div>
+    <aside class="card-inner" style="text-align:center">
+      <img src="./assets/user-demo.jpg" alt="Profilbild" style="width:180px; height:180px; object-fit:cover; border-radius:14px; box-shadow:0 8px 24px rgba(0,0,0,.12)">
+      <div style="margin-top:10px;">
+        <button class="btn-light" disabled>Byt bild</button>
+      </div>
+    </aside>
+  </section>
+
+  <section class="card" style="margin-top:20px;">
+    <div class="card-inner"><h2 class="section-title">Du hyr</h2>
+    <div class="listing-grid" style="display:grid; grid-template-columns:1fr; gap:14px;">
+      <article class="listing card-inner" style="display:flex; gap:14px; align-items:center;">
+        <img src="./assets/garage-thumb.jpg" alt="Förrådsbild" onerror="this.style.display='none';" style="width:120px; height:80px; object-fit:cover; border-radius:10px;">
+        <div style="flex:1">
+          <div style="font-weight:700">Uppvärmt förråd med avfuktare</div>
+          <div style="opacity:.8">Göteborg • 6 m²</div>
+        </div>
+        <a class="btn" href="./listing.html">Visa</a>
+      </article>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:20px;">
+    <div class="card-inner"><h2 class="section-title">Du hyr ut</h2>
+    <div class="listing-grid" style="display:grid; grid-template-columns:1fr; gap:14px;">
+      <article class="listing card-inner" style="display:flex; gap:14px; align-items:center;">
+        <img src="./assets/cellar-thumb.jpg" alt="Förrådsbild" onerror="this.style.display='none';" style="width:120px; height:80px; object-fit:cover; border-radius:10px;">
+        <div style="flex:1">
+          <div style="font-weight:700">Källarförråd i villa</div>
+          <div style="opacity:.8">Stockholm • 4 m²</div>
+        </div>
+        <a class="btn" href="./listing.html">Visa</a>
+      </article>
+    </div>
+  </section>
+
+</main>
+
+<!-- Static bottom nav with active Profil -->
+<nav class="bottom-nav">
+  <a href="index.html"><span aria-hidden="true" style="font-size:1.15rem">🧭</span><span>Start</span></a>
+  <a href="search.html"><span aria-hidden="true" style="font-size:1.15rem">🔎</span><span>Sök</span></a>
+  <a href="create.html"><span aria-hidden="true" style="font-size:1.15rem">🏠</span><span>Hyr ut</span></a>
+  <a class="active" href="profile.html"><span aria-hidden="true" style="font-size:1.15rem">👤</span><span>Profil</span></a>
+</nav>
+
+<script src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,344 @@
+
+:root{--bg:#f7f6fb;--glass:rgba(255,255,255,.7);--text:#0f0f10;--accent:#CDB4DB;--black:#151515;}
+*{box-sizing:border-box} html,body{height:100%} body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:var(--text)}
+a{text-decoration:none;color:inherit}
+.container{max-width:1200px;margin:0 auto;padding:24px}
+.btn{padding:12px 16px;border-radius:14px;border:1px solid #0001;background:var(--black);color:#fff;cursor:pointer;font-weight:600}
+.btn.secondary{background:#fff;color:var(--black);border:1px solid #0003}
+.btn.ghost{background:transparent;color:var(--black);border:1px solid #0003}
+.chip{padding:6px 10px;border-radius:999px;border:1px solid #0002;background:#fff;font-size:.85rem;margin-right:8px}
+
+
+
+
+
+.hero{padding:70px 0 40px; background:radial-gradient(900px 500px at 10% -10%, #e7def1 0%, transparent 60%), linear-gradient(135deg, #fff, #efe9f7);}
+.hero-inner{max-width:1200px;margin:0 auto}
+.hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:center}
+@media (max-width:1000px){ .hero-grid{grid-template-columns:1fr} }
+.cta-row{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
+.search-wrap{background:#fff;border:1px solid #00000020;border-radius:20px;box-shadow:0 12px 28px rgba(0,0,0,.08);padding:10px;max-width:720px}
+.search-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:16px;background:#fff;border:1px solid #0002;flex:1}
+.search-bar input{border:none;outline:none;flex:1;background:transparent;font-size:1rem}
+
+.hero-map{height:360px;border-radius:16px;overflow:hidden;border:1px solid #00000015;box-shadow:0 12px 24px rgba(0,0,0,.06)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+.card{border-radius:18px;overflow:hidden;background:#fff;border:1px solid #0001;box-shadow:0 8px 22px #0001}
+.card img{width:100%;height:200px;object-fit:cover;display:block}
+.card-body{padding:14px}
+.card-link{display:block}
+
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field input,.field select,.field textarea{padding:12px;border-radius:12px;border:1px solid #0003;background:#fff;outline:none}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+@media (max-width:900px){.two-col{grid-template-columns:1fr}}
+.footer{padding:40px 0;color:#666;border-top:1px solid #0001;margin-top:40px}
+
+.ac-wrap{position:relative;width:100%}
+.ac-list{position:absolute;top:100%;left:0;right:0;z-index:100;background:#fff;border:1px solid #00000020;border-radius:12px;margin-top:6px;box-shadow:0 10px 30px rgba(0,0,0,.12);max-height:320px;overflow:auto}
+.ac-item{padding:10px 12px;cursor:pointer}
+.ac-item:hover{background:#f5f3f7}
+.ac-label{font-weight:600}
+.ac-sub{font-size:12px;color:#666}
+
+/* Listing page */
+.gallery{border-radius:16px;overflow:hidden;border:1px solid #0001}
+.badges{display:flex;gap:8px;flex-wrap:wrap}
+.badge{background:#fff;border:1px solid #0002;border-radius:999px;padding:6px 10px;font-size:.85rem}
+.price{font-size:1.25rem;font-weight:800}
+@media (max-width:600px){
+  .hero{padding-top:56px}
+  .hero-map{height:300px}
+}
+
+
+/* ===== Floating Bottom Navigation ===== */
+.bottom-nav{
+  position: sticky;
+  bottom: 16px;
+  z-index: 1200;
+  margin: 24px auto;
+  background: var(--glass);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid #0002;
+  border-radius: 18px;
+  padding: 8px 12px;
+  display: flex; gap: 16px; align-items: center;
+  width: max-content;
+  box-shadow: 0 6px 20px rgba(0,0,0,.12);
+}
+.bottom-nav a{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 12px;border-radius:14px;font-size:.85rem;text-decoration:none;color:inherit}
+.bottom-nav a.active{color:var(--accent);font-weight:800;background:#fff8}
+.main-pad{padding-bottom:96px}
+html, body { min-height: 100%; }
+.nav-spacer { width:100%; height:var(--nav-spacer, 96px); }
+
+/* ===== Profile page ===== */
+.profile-card{display:grid;grid-template-columns:1fr 260px;gap:16px}
+.profile-panel{background:var(--panel);border:1px solid #0002;border-radius:14px;padding:16px;box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.profile-avatar{width:120px;height:120px;border-radius:16px;object-fit:cover;border:2px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+
+/* Stars */
+.star{cursor:default;font-size:20px;line-height:1}
+.stars .star.filled{color:#f5a524}
+.stars .star:not(.filled){color:#c9c9c9}
+
+/* ===== Site header (logo left + wordmark) ===== */
+.site-header{ display:flex; align-items:center; padding:12px 16px }
+.site-logo{ position: static !important; background:transparent !important; border:0 !important; box-shadow:none !important;
+  display:inline-flex; align-items:center; gap:12px; padding:6px 8px }
+.site-logo .logo-icon{ display:block; width:110px; height:88px; overflow:hidden; border-radius:8px }
+.site-logo .logo-icon img{ height:88px; width:auto; display:block; object-fit:cover; object-position:left center }
+.site-logo span{ display:inline-block !important; font-weight:900; font-size:36px; letter-spacing:.2px; color:#1F2240; line-height:1; margin-top:6px }
+@media (max-width:600px){
+  .site-logo .logo-icon{ width:88px; height:72px }
+  .site-logo .logo-icon img{ height:72px }
+  .site-logo span{ font-size:28px; margin-top:4px }
+}
+
+
+/* Banner-matched logo background + snug fit */
+.site-logo .logo-icon{
+  width:120px; height:96px;
+  border-radius:12px;
+  padding:4px;              /* små marginaler */
+  overflow:hidden;
+  background: transparent;  /* sätts dynamiskt via JS till bannerfärg */
+}
+.site-logo .logo-icon img{
+  width:100%; height:100%;
+  object-fit:contain;       /* fyll ytan utan att klippa motivet */
+  display:block;
+}
+@media (max-width:600px){
+  .site-logo .logo-icon{ width:96px; height:78px; padding:3px }
+}
+
+
+/* === Brand header: bigger icon, minimal margins, banner-colored background === */
+.site-logo{ background:transparent !important; border:0 !important; box-shadow:none !important; gap:14px; padding:8px 10px !important }
+.site-logo .logo-icon{
+  width:148px; height:116px;
+  padding:2px;                 /* mycket små marginaler */
+  border-radius:12px;
+  overflow:hidden;
+  background:transparent;      /* sätts i JS = samma som banner */
+  isolation:isolate;           /* så mix-blend fungerar inom boxen */
+}
+.site-logo .logo-icon img{
+  width:100%; height:100%;
+  object-fit:cover;            /* fyll ut boxen */
+  object-position:center 58%;  /* fokusera på huset/boxarna */
+  display:block;
+  mix-blend-mode:multiply;     /* gör vitt = bannerfärg */
+  image-rendering:auto;
+}
+.site-logo span{ font-size:40px; font-weight:900; letter-spacing:.1px; margin-top:8px; color:#1F2240 }
+
+@media (max-width: 600px){
+  .site-logo .logo-icon{ width:118px; height:92px; padding:2px }
+  .site-logo span{ font-size:30px; margin-top:6px }
+}
+
+
+/* === Circular brand icon (soft) === */
+.site-logo .logo-icon{
+  border-radius: 50% !important;   /* circular */
+  padding: 3px;                    /* tiny breathing room */
+  background: transparent;         /* JS sets to banner color */
+  box-shadow: 0 6px 16px rgba(0,0,0,.10), inset 0 0 0 1px rgba(0,0,0,.06);
+}
+.site-logo .logo-icon img{
+  border-radius: 50% !important;   /* ensure image follows the circle */
+  object-fit: cover;
+  object-position: center;
+  mix-blend-mode: normal !important; /* keep original colors */
+}
+@media (max-width: 600px){
+  .site-logo .logo-icon{ padding: 2px }
+}
+
+
+/* === Banner cutout around logo + larger overlapping logo === */
+.site-header{ position:relative; overflow:visible; background:transparent !important; }
+.site-header::before{
+  content:"";
+  position:absolute; inset:0;
+  background: var(--header-bg, #f8f7fc);
+  border-radius: 14px;
+  pointer-events:none;
+  /* Punch a circular hole where the logo sits */
+  -webkit-mask: radial-gradient(circle var(--logo-r, 64px) at calc(var(--logo-x, 16px) + var(--logo-r, 64px)) calc(var(--logo-y, 8px) + var(--logo-r, 64px)), transparent 98%, black 100%);
+          mask: radial-gradient(circle var(--logo-r, 64px) at calc(var(--logo-x, 16px) + var(--logo-r, 64px)) calc(var(--logo-y, 8px) + var(--logo-r, 64px)), transparent 98%, black 100%);
+  box-shadow: 0 2px 0 rgba(0,0,0,.02) inset;
+}
+.site-logo{ gap:16px; padding:10px 14px !important }
+.site-logo .logo-icon{
+  width: 132px; height: 132px;      /* bigger than banner height so den tar gul yta */
+  margin-top: -18px; margin-bottom: -18px; /* låt den gå över/under bannern */
+  padding: 4px;
+  border-radius: 50%;
+  overflow:hidden;
+  background: transparent;          /* fylls via JS till samma som header */
+  box-shadow: 0 8px 22px rgba(0,0,0,.12), inset 0 0 0 1px rgba(255,255,255,.7);
+}
+.site-logo .logo-icon img{
+  width:100%; height:100%;
+  object-fit:cover; object-position:center 55%;
+  border-radius:50%;
+}
+@media (max-width: 680px){
+  .site-logo .logo-icon{ width:108px; height:108px; margin-top:-14px; margin-bottom:-14px; padding:3px }
+}
+
+
+/* === Smaller banner strip while keeping big circular logo overlapping === */
+.site-header{ position:relative; padding:8px 12px }
+.site-header::before{
+  content:""; position:absolute;
+  top:8px; left:8px; right:8px; height:var(--banner-h, 60px);
+  background: var(--header-bg, #f8f7fc);
+  border-radius: 14px; pointer-events:none;
+  -webkit-mask: radial-gradient(circle var(--logo-r, 64px) at calc(var(--logo-x, 16px) + var(--logo-r, 64px)) calc(var(--logo-y, 8px) + var(--logo-r, 64px)), transparent 98%, black 100%);
+          mask: radial-gradient(circle var(--logo-r, 64px) at calc(var(--logo-x, 16px) + var(--logo-r, 64px)) calc(var(--logo-y, 8px) + var(--logo-r, 64px)), transparent 98%, black 100%);
+  box-shadow: 0 2px 0 rgba(0,0,0,.02) inset;
+}
+/* Ensure the logo overlaps the smaller banner neatly */
+.site-logo .logo-icon{ margin-top:-14px; margin-bottom:-14px }
+@media (max-width:680px){
+  .site-header{ padding:6px 10px }
+  .site-header::before{ top:6px; left:6px; right:6px; height:var(--banner-h, 52px) }
+  .site-logo .logo-icon{ margin-top:-12px; margin-bottom:-12px }
+}
+
+/* Nav icon svg sizing */
+.bottom-nav a .nav-ico{ display:block; width:22px; height:22px }
+.bottom-nav a .nav-ico svg{ width:22px; height:22px; display:block }
+
+
+/* === Banner fade on scroll === */
+.site-header::before{ opacity: var(--banner-alpha, 1); transition: opacity .25s ease }
+.site-logo{ transition: transform .25s ease, opacity .25s ease }
+.site-header.scrolled .site-logo{ transform: translateY(-2px); opacity: 0.98 }
+
+
+/* Safe defaults so logo hole is open even before JS measures */
+.site-header{ z-index: 10; }
+.site-header::before{
+  --logo-r: var(--logo-r, 66px);
+  --logo-x: var(--logo-x, 16px);
+  --logo-y: var(--logo-y, 8px);
+}
+.site-logo{ position: relative; z-index: 11; }
+
+
+/* === Static header (no JS required) === */
+.fixed-header{
+  --header-bg: #F5F1FB;
+  background: linear-gradient(to bottom, var(--header-bg) 0%, var(--header-bg) 70%, rgba(245,241,251,0) 100%);
+  border-radius: 16px;
+  margin: 8px; padding: 14px 18px;
+  overflow: hidden;
+}
+.fixed-header-inner{ display:flex; align-items:center; gap:16px; min-height:96px }
+.fixed-logo{
+  display:block; border-radius:50%;
+  box-shadow: 0 1px 0 rgba(255,255,255,.85) inset, 0 10px 24px rgba(0,0,0,.12);
+  width:84px; height:84px; object-fit:cover; object-position:center;
+}
+.fixed-brand{ font-size: clamp(24px, 3vw, 36px); font-weight:800; letter-spacing:.2px; color:#1F2433 }
+@media (max-width:640px){
+  .fixed-header{ margin:6px; padding:12px 14px }
+  .fixed-header-inner{ min-height:88px }
+  .fixed-logo{ width:78px; height:78px }
+}
+  .fixed-header-inner{ display:flex; align-items:center; gap:16px; min-height:96px }
+  .fixed-logo{
+  display:block; border-radius:50%;
+  box-shadow: 0 1px 0 rgba(255,255,255,.85) inset, 0 10px 24px rgba(0,0,0,.12);
+  width:84px; height:84px; object-fit:cover; object-position:center;
+}
+}
+
+
+/* --- Bottom nav visibility fix --- */
+.bottom-nav{
+  position: sticky;
+  bottom: 16px;
+  z-index: 1200;
+  margin: 24px auto;
+  background: var(--glass);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid #0002;
+  border-radius: 18px;
+  padding: 8px 12px;
+  display: flex; gap: 16px; align-items: center;
+  width: max-content;
+  box-shadow: 0 6px 20px rgba(0,0,0,.12);
+}
+.bottom-nav a{ color:#1f2433; text-decoration:none; font-weight:600; display:flex; flex-direction:column; align-items:center; gap:6px }
+.bottom-nav a.active{ color:#6b3df3 }
+.bottom-nav a span:last-child{ font-size:.9rem }
+body.main-pad{ padding-bottom: 110px }
+@media (max-width:640px){
+  .fixed-header{ margin:6px; padding:12px 14px }
+  .fixed-header-inner{ min-height:88px }
+  .fixed-logo{ width:78px; height:78px }
+}
+  body.main-pad{ padding-bottom: 100px }
+}
+
+
+/* ==== Profile spacing & light gray cards (refresh 2) ==== */
+.card-inner{ padding:24px; }
+@media (max-width: 640px){ .card-inner{ padding:18px; } }
+.card{
+  background:#fbfbfe; /* soft light gray */
+  box-shadow: 0 14px 36px rgba(0,0,0,.10);
+}
+.alert{ margin: 0 0 12px; }
+
+
+/* ==== Profile spacing & card gray (refresh 3) ==== */
+.card-inner{ padding: 28px 28px; }           /* mer luft mot kanter */
+@media (max-width: 640px){ .card-inner{ padding: 20px; } }
+.card{
+  background:#f4f5fb;                        /* tydligare ljusgrå fönsterfärg */
+  box-shadow: 0 16px 38px rgba(0,0,0,.12);
+}
+/* För profilfält – extra intryck vänster om man vill */
+.profile-fields{ padding-left: 2px; }        /* liten optisk indragning */
+
+/* Section titles inside cards */
+.section-title{ margin: 0 0 10px; font-size: 1.3rem; font-weight: 800; color:#1F2240; }
+
+/* Hide stray corner-logo if present */
+.corner-logo{ display:none !important; }
+
+/* ===== Featured horizontal scroller ===== */
+.featured-row{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scroll-snap-type:x mandatory;
+  padding: 6px 6px 12px;
+  margin: 6px -4px 0;
+  cursor: grab;
+}
+.featured-row.grabbing{ cursor: grabbing; }
+.featured-track{ display:flex; gap:18px; }
+.featured-item{ flex:0 0 clamp(260px, 32vw, 380px); scroll-snap-align:start; }
+.featured-item .card img{ height: 200px; }
+
+/* Show a slim scrollbar */
+.featured-row{ scrollbar-width: thin; -ms-overflow-style: auto; }
+.featured-row::-webkit-scrollbar{ height: 10px; }
+.featured-row::-webkit-scrollbar-track{ background: #f1f3f9; border-radius: 10px; }
+.featured-row::-webkit-scrollbar-thumb{ background: #c9cedd; border-radius: 10px; border: 2px solid #f1f3f9; }
+.featured-row:hover::-webkit-scrollbar-thumb{ background: #b9bfd0; }
+
+/* Safe-area padding */
+@supports (padding: max(0px)){
+  body{ padding-bottom: max(0px, env(safe-area-inset-bottom)); }
+}

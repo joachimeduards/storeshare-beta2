@@ -1,0 +1,107 @@
+
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Lägg upp förråd – StoreShare</title>
+    <link rel="stylesheet" href="./style.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  </head>
+  <body>
+
+<header class="fixed-header" role="banner">
+  <div class="fixed-header-inner">
+    <img class="fixed-logo" 
+         src="./assets/storeshare-logo-132.png" 
+         srcset="./assets/storeshare-logo-132.png 1x, ./assets/storeshare-logo-264.png 2x, ./assets/storeshare-logo-396.png 3x"
+         width="56" height="56" alt="StoreShare">
+    <span class="fixed-brand">StoreShare</span>
+  </div>
+</header>
+
+<div class="container" style="max-width:900px">
+      <h2>Lägg upp ett förråd</h2>
+      <form id="f" class="glass" style="padding:16px">
+        <div class="field"><label>Titel</label><input name="title" required placeholder="t.ex. Uppvärmt förråd i källare"/></div>
+        <div class="field"><label>Beskrivning</label><textarea name="description" rows="4" placeholder="Kort beskrivning…"></textarea></div>
+        <div class="two-col" style="grid-template-columns:1fr 1fr">
+          <div class="field"><label>Pris (kr/mån)</label><input name="price" type="number" min="0" required placeholder="t.ex. 600"/></div>
+          <div class="field"><label>Yta (m²)</label><input name="size" type="number" min="1" required placeholder="t.ex. 6"/></div>
+        </div>
+        <div class="row"><label><input type="checkbox" name="heated"/> Uppvärmt</label><label><input type="checkbox" name="dehumidifier"/> Avfuktare</label></div>
+        <div class="field" style="margin-top:12px"><label>Bild-URL (valfri)</label><input name="photo" type="url" placeholder="https://..."/></div>
+        <div class="field" style="margin-top:12px">
+          <label>Adress / plats</label>
+          <div class="search-bar"><input id="q" placeholder="Adress eller ort i Sverige…"/></div>
+          <div id="ac" class="ac-wrap"></div>
+          <div class="row" style="margin-top:8px"><button id="pick" class="chip" type="button">Välj på karta…</button><span id="chosen" class="chip" style="display:none">Plats satt</span></div>
+        </div>
+        <div id="map" style="height:300px; border-radius:12px; overflow:hidden; border:1px solid #0001; margin-top:8px"></div>
+        <div class="row" style="justify-content:flex-end; margin-top:16px">
+          <a class="btn ghost" href="./index.html">Avbryt</a><button class="btn" type="submit">Publicera</button>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      // Fade logo
+      const cornerLogo = document.getElementById('cornerLogo')
+      window.addEventListener('scroll', () => {
+        const y = window.scrollY || document.documentElement.scrollTop
+        if (y > 120) cornerLogo.classList.add('hide'); else cornerLogo.classList.remove('hide')
+      }, { passive:true })
+
+      // Geocode
+      const SE_BBOX = { minLon: 10.0, minLat: 55.0, maxLon: 24.5, maxLat: 69.5 }
+      const VIEWBOX = `${SE_BBOX.minLon},${SE_BBOX.maxLat},${SE_BBOX.maxLon},${SE_BBOX.minLat}`
+      async function timeoutFetch(url, ms=3000){ const ctrl=new AbortController(); const t=setTimeout(()=>ctrl.abort(),ms); try{ return await fetch(url,{signal:ctrl.signal,headers:{'Accept-Language':'sv'}})} finally{clearTimeout(t)}}
+      function labelFromPhoton(p){ const parts=[p.name,p.city||p.locality||p.county,p.state].filter(Boolean); return parts.join(' • ') }
+      async function suggestAddressesSE(q){
+        q=(q||'').trim(); if(!q) return []; const out=[]; const bbox=`${SE_BBOX.minLon},${SE_BBOX.minLat},${SE_BBOX.maxLon},${SE_BBOX.maxLat}`
+        try{ const url=`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&lang=sv&limit=8&bbox=${bbox}`; const res=await timeoutFetch(url,2500); if(res.ok){ const data=await res.json(); (data.features||[]).forEach(f=>{const p=f.properties||{}; const [lng,lat]=f.geometry?.coordinates||[]; if(lat&&lng) out.push({label:labelFromPhoton(p),lat,lng}) }) } }catch(e){}
+        try{ const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=8&countrycodes=se&bounded=1&viewbox=${VIEWBOX}&q=${encodeURIComponent(q)}`; const res=await timeoutFetch(url,2500); if(res.ok){ const data=await res.json(); (data||[]).forEach(it=>{ if(it?.lat&&it?.lon){ const a=it.address||{}; const title=it.display_name?.split(',')[0]||a.road||a.suburb||a.village||a.town||a.city||'Plats'; const city=a.city||a.town||a.village||a.municipality||a.county||''; const label=city?`${title} • ${city}`:title; out.push({label,lat:parseFloat(it.lat),lng:parseFloat(it.lon)}) } }) } }catch(e){}
+        try{ const url=`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=8&language=sv&format=json&country=SE`; const res=await timeoutFetch(url,2000); if(res.ok){ const data=await res.json(); (data.results||[]).forEach(r=> out.push({label:[r.name,r.admin1].filter(Boolean).join(' • '), lat:r.latitude, lng:r.longitude})) } }catch(e){}
+        out.push({ pickOnMap:true, label:'Välj på karta…' })
+        const seen=new Set(); return out.filter(x=>{ const k=(x.pickOnMap?'pick':'')+'|'+x.label; if(seen.has(k)) return false; seen.add(k); return true })
+      }
+
+      // Map + pick
+      let chosen=null, pin=null
+      const map=L.map('map').setView([59.334591,18.06324],11)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap'}).addTo(map)
+      function setPoint(lat,lng,label){ chosen={lat,lng,label}; document.getElementById('chosen').style.display='inline-block'; if(pin) map.removeLayer(pin); pin=L.marker([lat,lng]).addTo(map); map.setView([lat,lng],12) }
+
+      const q=document.getElementById('q'); const acWrap=document.getElementById('ac'); let t=null
+      function renderAC(items){
+        const list=document.createElement('div'); list.className='ac-list'
+        items.forEach(it=>{ const row=document.createElement('div'); row.className='ac-item'; row.innerHTML=`<div class="ac-label">${it.label}</div>`+(it.pickOnMap?'<div class="ac-sub">Placera pin på karta</div>':''); row.onclick=()=>{ if(it.pickOnMap){ alert('Klicka på kartan för att sätta plats.'); const onClick=(e)=>{ setPoint(e.latlng.lat,e.latlng.lng,`Nära ${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`); map.off('click',onClick) }; map.on('click',onClick) } else { setPoint(it.lat,it.lng,it.label) } acWrap.innerHTML='' }; list.appendChild(row) })
+        acWrap.innerHTML=''; acWrap.appendChild(list)
+      }
+      q.addEventListener('input',(e)=>{ const val=e.target.value.trim(); if(t) clearTimeout(t); if(val.length<2){ acWrap.innerHTML=''; return; } t=setTimeout(async()=>{ 
+        const items = await suggestAddressesSE(val); renderAC(items)
+      },250) })
+      document.getElementById('pick').addEventListener('click',()=>{ alert('Klicka på kartan för att sätta plats.'); const onClick=(e)=>{ setPoint(e.latlng.lat,e.latlng.lng,`Nära ${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`); map.off('click',onClick) }; map.on('click',onClick) })
+      document.addEventListener('click',(e)=>{ if(!acWrap.contains(e.target) && e.target!==q){ acWrap.innerHTML='' } })
+
+      // Save listing
+      document.getElementById('f').addEventListener('submit',(e)=>{
+        e.preventDefault()
+        const fd=new FormData(e.target)
+        const obj={ id:String(Date.now()), title:(fd.get('title')||'').toString().trim(), description:(fd.get('description')||'').toString().trim(), pricePerMonth:Number(fd.get('price')||0), sizeSqm:Number(fd.get('size')||0), heated:!!fd.get('heated'), dehumidifier:!!fd.get('dehumidifier'), photos:[(fd.get('photo')||'').toString().trim()||'./assets/garage2.webp'], location: chosen?{address:chosen.label,lat:chosen.lat,lng:chosen.lng}:null }
+        if(!obj.title || !obj.pricePerMonth || !obj.sizeSqm || !obj.location){ alert('Fyll i titel, pris, yta och välj plats.'); return; }
+        try{ const key='storeshare:demo:listings'; const raw=localStorage.getItem(key); const arr=raw?JSON.parse(raw):[]; arr.push(obj); localStorage.setItem(key, JSON.stringify(arr)); alert('Förrådet publicerat! Du hittar det via Sök.'); location.href='./search.html' }catch(err){ alert('Kunde inte spara – kontrollera att webbläsaren tillåter localStorage.') }
+      })
+    </script>
+      <script src="./app.js"></script>
+  
+<nav class="bottom-nav">
+  <a href="index.html" ><span aria-hidden="true" style="font-size:1.15rem">🧭</span><span>Start</span></a>
+  <a href="search.html" ><span aria-hidden="true" style="font-size:1.15rem">🔎</span><span>Sök</span></a>
+  <a href="create.html" class="active"><span aria-hidden="true" style="font-size:1.15rem">🏠</span><span>Hyr ut</span></a>
+  <a href="profile.html" ><span aria-hidden="true" style="font-size:1.15rem">👤</span><span>Profil</span></a>
+</nav>
+
+</body>
+</html>

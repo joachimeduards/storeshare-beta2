@@ -1,0 +1,162 @@
+
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>StoreShare – Demo</title>
+    <link rel="stylesheet" href="./style.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  </head>
+  <body>
+
+<header class="fixed-header" role="banner">
+  <div class="fixed-header-inner">
+    <img class="fixed-logo" 
+         src="./assets/storeshare-logo-132.png" 
+         srcset="./assets/storeshare-logo-132.png 1x, ./assets/storeshare-logo-264.png 2x, ./assets/storeshare-logo-396.png 3x"
+         width="56" height="56" alt="StoreShare">
+    <span class="fixed-brand">StoreShare</span>
+  </div>
+</header>
+
+<div class="hero">
+      <div class="container hero-inner">
+        <div class="hero-grid">
+          <div>
+            <h1>Hyr ut och boka förråd smartare</h1>
+            <p>Mindre krångel, mer utrymme. Direktkontakt mellan värd och hyrestagare.</p>
+            <div class="cta-row">
+              <a class="btn" href="./search.html">Sök förråd</a>
+              <a class="btn secondary" href="./create.html">Lägg upp förråd</a>
+            </div>
+            <div class="search-wrap">
+              <div class="search-bar">
+                <span>📦</span>
+                <input id="q" placeholder="Adress eller ort i Sverige…"/>
+              </div>
+              <div id="ac" class="ac-wrap"></div>
+            </div>
+          </div>
+          <div>
+            <div id="map" class="hero-map"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <h3>Utvalda förråd</h3>
+      <div class="featured-row" id="featuredRow" aria-label="Utvalda förråd">
+        <div class="featured-track" id="featuredTrack"></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="container row" style="justify-content:space-between">
+        <div class="row" style="gap:10px">
+          <img src="./assets/storeshare-logo-emblem.svg" alt="StoreShare" style="height:28px"/>
+          <div>© <span id="year"></span> StoreShare</div>
+        </div>
+        <div class="row" style="gap:14px">
+          <a class="btn secondary" href="./search.html">Sök</a>
+          <a class="btn ghost" href="./create.html">Lägg upp</a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Fade corner logo on scroll (index)
+      const cornerLogo = document.getElementById('cornerLogo')
+      window.addEventListener('scroll', () => {
+        const y = window.scrollY || document.documentElement.scrollTop
+        if (y > 120) cornerLogo.classList.add('hide'); else cornerLogo.classList.remove('hide')
+      }, { passive:true })
+
+      // Seed + Load
+      function seedListings(){ return [
+        {id:'1',title:'Uppvärmt förråd med avfuktare',description:'Perfekt för elektronik och möbler. Ligger nära centrum.',pricePerMonth:600,sizeSqm:6,heated:true,dehumidifier:true,photos:['./assets/garage1.avif'],location:{address:'Rosenlundsgatan • Göteborg',lat:57.7089,lng:11.9746}},
+        {id:'2',title:'Källarförråd i villa',description:'Svalt året runt. Inte uppvärmt.',pricePerMonth:350,sizeSqm:4,heated:false,dehumidifier:false,photos:['./assets/garage2.webp'],location:{address:'Sveavägen • Stockholm',lat:59.3293,lng:18.0686}}
+      ]}
+      function loadUserListings(){ try{ return JSON.parse(localStorage.getItem('storeshare:demo:listings')||'[]') }catch(e){ return [] } }
+      function loadListings(){ return seedListings().concat(loadUserListings()) }
+
+      // Geocode helpers & autocomplete (unchanged)
+      const SE_BBOX = { minLon: 10.0, minLat: 55.0, maxLon: 24.5, maxLat: 69.5 }
+      const VIEWBOX = `${SE_BBOX.minLon},${SE_BBOX.maxLat},${SE_BBOX.maxLon},${SE_BBOX.minLat}`
+      async function timeoutFetch(url, ms=3000){ const ctrl=new AbortController(); const t=setTimeout(()=>ctrl.abort(),ms); try{ return await fetch(url,{signal:ctrl.signal,headers:{'Accept-Language':'sv'}})} finally{clearTimeout(t)}}
+      function labelFromPhoton(p){ const parts=[p.name,p.city||p.locality||p.county,p.state].filter(Boolean); return parts.join(' • ') }
+      async function suggestAddressesSE(q){
+        q=(q||'').trim(); if(!q) return []; const out=[]; const bbox=`${SE_BBOX.minLon},${SE_BBOX.minLat},${SE_BBOX.maxLon},${SE_BBOX.maxLat}`
+        try{ const url=`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&lang=sv&limit=8&bbox=${bbox}`; const res=await timeoutFetch(url,2500); if(res.ok){ const data=await res.json(); (data.features||[]).forEach(f=>{const p=f.properties||{}; const [lng,lat]=f.geometry?.coordinates||[]; if(lat&&lng) out.push({label:labelFromPhoton(p),lat,lng}) }) } }catch(e){}
+        try{ const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=8&countrycodes=se&bounded=1&viewbox=${VIEWBOX}&q=${encodeURIComponent(q)}`; const res=await timeoutFetch(url,2500); if(res.ok){ const data=await res.json(); (data||[]).forEach(it=>{ if(it?.lat&&it?.lon){ const a=it.address||{}; const title=it.display_name?.split(',')[0]||a.road||a.suburb||a.village||a.town||a.city||'Plats'; const city=a.city||a.town||a.village||a.municipality||a.county||''; const label=city?`${title} • ${city}`:title; out.push({label,lat:parseFloat(it.lat),lng:parseFloat(it.lon)}) } }) } }catch(e){}
+        try{ const url=`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=8&language=sv&format=json&country=SE`; const res=await timeoutFetch(url,2000); if(res.ok){ const data=await res.json(); (data.results||[]).forEach(r=> out.push({label:[r.name,r.admin1].filter(Boolean).join(' • '), lat:r.latitude, lng:r.longitude})) } }catch(e){}
+        out.push({ pickOnMap:true, label:'Välj på karta…' })
+        const seen=new Set(); return out.filter(x=>{ const k=(x.pickOnMap?'pick':'')+'|'+x.label; if(seen.has(k)) return false; seen.add(k); return true })
+      }
+
+      document.getElementById('year').textContent = new Date().getFullYear()
+
+      // Map + featured cards
+      const map = L.map('map').setView([59.334591, 18.06324], 11)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map)
+      const listings = loadListings()
+      listings.forEach(l => { L.marker([l.location.lat, l.location.lng]).addTo(map).bindPopup(`<strong>${l.title}</strong><br>${l.location.address}<br>${l.pricePerMonth} kr/mån • ${l.sizeSqm} m²`) })
+      const track = document.getElementById('featuredTrack')
+track.innerHTML = listings.slice(0, 12).map(l => `
+  <div class="featured-item">
+    <a class="card-link" href="./listing.html?id=${encodeURIComponent(l.id)}">
+      <div class="card">
+        <img src="${l.photos[0]}" alt="${l.title}"/>
+        <div class="card-body">
+          <div class="row" style="justify-content:space-between">
+            <strong>${l.title}</strong>
+            <span>${l.sizeSqm} m²</span>
+          </div>
+          <div style="color:#555;margin-top:4px">${l.location.address}</div>
+          <div style="margin-top:6px">${l.pricePerMonth} kr/mån</div>
+        </div>
+      </div>
+    </a>
+  </div>
+`).join('')
+// Manual drag-to-scroll (desktop)
+const rowEl = document.getElementById('featuredRow')
+let isDown=false, startX=0, startLeft=0
+rowEl.addEventListener('mousedown', (e)=>{ isDown=true; rowEl.classList.add('grabbing'); startX=e.pageX; startLeft=rowEl.scrollLeft })
+window.addEventListener('mouseup', ()=>{ isDown=false; rowEl.classList.remove('grabbing') })
+rowEl.addEventListener('mousemove', (e)=>{ if(!isDown) return; e.preventDefault(); rowEl.scrollLeft = startLeft - (e.pageX - startX) })
+
+      // Autocomplete
+      const q = document.getElementById('q'); const acWrap = document.getElementById('ac'); let t=null
+      function renderAC(items){
+        const list=document.createElement('div'); list.className='ac-list'
+        items.forEach(it=>{
+          const row=document.createElement('div'); row.className='ac-item'
+          row.innerHTML = `<div class="ac-label">${it.label}</div>` + (it.pickOnMap?'<div class="ac-sub">Placera pin på karta</div>':'')
+          row.onclick = ()=>{
+            if(it.pickOnMap){ window.location.href='./search.html?pick=1' }
+            else{ window.location.href=`./search.html?lat=${it.lat}&lng=${it.lng}&q=${encodeURIComponent(it.label)}` }
+          }
+          list.appendChild(row)
+        })
+        acWrap.innerHTML=''; acWrap.appendChild(list)
+      }
+      q.addEventListener('input', (e)=>{
+        const val=e.target.value.trim(); if(t) clearTimeout(t); if(val.length<2){ acWrap.innerHTML=''; return; }
+        t=setTimeout(async ()=>{ renderAC(await suggestAddressesSE(val)) }, 250)
+      })
+      document.addEventListener('click', (e)=>{ if(!acWrap.contains(e.target) && e.target!==q){ acWrap.innerHTML='' } })
+    </script>
+      <script src="./app.js"></script>
+  
+<nav class="bottom-nav">
+  <a href="index.html" class="active"><span aria-hidden="true" style="font-size:1.15rem">🧭</span><span>Start</span></a>
+  <a href="search.html" ><span aria-hidden="true" style="font-size:1.15rem">🔎</span><span>Sök</span></a>
+  <a href="create.html" ><span aria-hidden="true" style="font-size:1.15rem">🏠</span><span>Hyr ut</span></a>
+  <a href="profile.html" ><span aria-hidden="true" style="font-size:1.15rem">👤</span><span>Profil</span></a>
+</nav>
+
+</body>
+</html>

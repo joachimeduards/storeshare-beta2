@@ -1,0 +1,94 @@
+
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Förråd – StoreShare</title>
+    <link rel="stylesheet" href="./style.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  </head>
+  <body>
+
+<header class="fixed-header" role="banner">
+  <div class="fixed-header-inner">
+    <img class="fixed-logo" 
+         src="./assets/storeshare-logo-132.png" 
+         srcset="./assets/storeshare-logo-132.png 1x, ./assets/storeshare-logo-264.png 2x, ./assets/storeshare-logo-396.png 3x"
+         width="56" height="56" alt="StoreShare">
+    <span class="fixed-brand">StoreShare</span>
+  </div>
+</header>
+
+    <a class="corner-logo hide" href="./index.html" id="cornerLogo">
+      <img src="./assets/storeshare-logo-emblem.svg" alt="StoreShare"/>
+      <span>StoreShare</span>
+    </a>
+    <div class="container" style="max-width:1000px">
+      <div id="content"></div>
+    </div>
+    <script>
+      // Show corner logo only near very top
+      const cornerLogo = document.getElementById('cornerLogo')
+      window.addEventListener('scroll', () => {
+        const y = window.scrollY || document.documentElement.scrollTop
+        if (y < 40) cornerLogo.classList.remove('hide'); else cornerLogo.classList.add('hide')
+      }, { passive:true })
+
+      function seedListings(){ return [
+        {id:'1',title:'Uppvärmt förråd med avfuktare',description:'Perfekt för elektronik och möbler. Ligger nära centrum.',pricePerMonth:600,sizeSqm:6,heated:true,dehumidifier:true,photos:['./assets/garage1.avif'],location:{address:'Rosenlundsgatan • Göteborg',lat:57.7089,lng:11.9746}},
+        {id:'2',title:'Källarförråd i villa',description:'Svalt året runt. Inte uppvärmt.',pricePerMonth:350,sizeSqm:4,heated:false,dehumidifier:false,photos:['./assets/garage2.webp'],location:{address:'Sveavägen • Stockholm',lat:59.3293,lng:18.0686}}
+      ]}
+      function loadUserListings(){ try{ return JSON.parse(localStorage.getItem('storeshare:demo:listings')||'[]') }catch(e){ return [] } }
+      function loadListings(){ return seedListings().concat(loadUserListings()) }
+
+      const params = new URLSearchParams(location.search)
+      const id = params.get('id')
+      const l = loadListings().find(x => String(x.id) === String(id))
+
+      const el = document.getElementById('content')
+      if(!l){ el.innerHTML = '<div class="glass" style="padding:16px">Förråd hittades inte.</div>'; }
+      else {
+        el.innerHTML = `
+          <div class="gallery">
+            <img src="${l.photos[0]}" alt="${l.title}" style="width:100%;height:360px;object-fit:cover;display:block"/>
+          </div>
+          <div class="two-col" style="margin-top:16px; grid-template-columns:1.2fr .8fr">
+            <div>
+              <h1 style="margin:.4em 0">${l.title}</h1>
+              <div class="badges">
+                <span class="badge">${l.sizeSqm} m²</span>
+                <span class="badge">${l.heated ? 'Uppvärmt' : 'Ej uppvärmt'}</span>
+                <span class="badge">${l.dehumidifier ? 'Avfuktare' : 'Ingen avfuktare'}</span>
+              </div>
+              <p style="margin-top:12px">${l.description || ''}</p>
+              <div class="price">${l.pricePerMonth} kr/mån</div>
+              <div style="color:#555;margin-top:6px">${l.location.address}</div>
+              <div class="row" style="margin-top:14px">
+                <button class="btn">Förfrågan (Swish placeholder)</button>
+                <a class="btn secondary" href="./search.html">Tillbaka till sök</a>
+              </div>
+            </div>
+            <div>
+              <div id="map" style="height:300px;border-radius:12px;overflow:hidden;border:1px solid #0001"></div>
+            </div>
+          </div>
+        `
+        const map = L.map('map').setView([l.location.lat, l.location.lng], 13)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map)
+        L.marker([l.location.lat, l.location.lng]).addTo(map).bindPopup(l.title)
+      }
+    </script>
+      <script src="./app.js"></script>
+  <div id="detailActions" style="margin:16px"></div>
+  
+<nav class="bottom-nav">
+  <a href="index.html" ><span aria-hidden="true" style="font-size:1.15rem">🧭</span><span>Start</span></a>
+  <a href="search.html" ><span aria-hidden="true" style="font-size:1.15rem">🔎</span><span>Sök</span></a>
+  <a href="create.html" ><span aria-hidden="true" style="font-size:1.15rem">🏠</span><span>Hyr ut</span></a>
+  <a href="profile.html" ><span aria-hidden="true" style="font-size:1.15rem">👤</span><span>Profil</span></a>
+</nav>
+
+</body>
+</html>
